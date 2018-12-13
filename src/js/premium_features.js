@@ -68,9 +68,11 @@ function createTabPremiumFeatureList(premiumFeatureList) {
         xhttp.setRequestHeader("Content-type", "application/json");
         xhttp.setRequestHeader("X-Parse-Application-Id", chrome.runtime.id);
     },
-    url: 'https://api.steemplus.app/premium-feature-list',
+    url: 'http://steem-plus-api-test.herokuapp.com/premium-feature-list',
+    // url: 'https://api.steemplus.app/premium-feature-list',
     success: function(features) {
         features.forEach((feature, index) => {
+            console.log(feature);
             const isActive = findFeature(feature.name) !== undefined;
             const activeFeature = findFeature(feature.name);
             $('.premium-feature-list-content').append(`

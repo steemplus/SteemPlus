@@ -268,7 +268,8 @@ chrome.storage.local.get(['premium_features', 'steem_monsters', 'steemplus_point
                     to: 'utopian_post',
                     order: 'start',
                     data: {
-                        user: user
+                        user: user,
+                        isPremium: hasPremiumFeature("Pixel")
                     }
                 });
             if (dtube_post && (steemit))
@@ -277,7 +278,8 @@ chrome.storage.local.get(['premium_features', 'steem_monsters', 'steemplus_point
                     to: 'dtube_post',
                     order: 'start',
                     data: {
-                        user: user
+                        user: user,
+                        isPremium: hasPremiumFeature("Pixel")
                     }
                 });
             if (beneficiaries && (steemit || busy))
@@ -290,7 +292,8 @@ chrome.storage.local.get(['premium_features', 'steem_monsters', 'steemplus_point
                         steemit: steemit,
                         busy: busy,
                         select_reward_dropdown_enabled: true,
-                        isPremium: hasPremiumFeature("Remove Beneficiaries Fee")
+                        isPremiumBeneficiaries: hasPremiumFeature("Remove Beneficiaries Fee"),
+                        isPremiumPixel: hasPremiumFeature("Pixel")
                     }
                 });
             if (steemit && feedp && resteem === 'whitelist_radio' || resteem === 'blacklist_radio')
@@ -349,7 +352,8 @@ chrome.storage.local.get(['premium_features', 'steem_monsters', 'steemplus_point
                     to: 'select_reward_dropdown',
                     order: 'start',
                     data: {
-                        user: user
+                        user: user,
+                        isPremium: hasPremiumFeature("Pixel")
                     }
                 });
 
@@ -408,7 +412,8 @@ chrome.storage.local.get(['premium_features', 'steem_monsters', 'steemplus_point
                                 to: 'utopian_post',
                                 order: 'click',
                                 data: {
-                                    user: user
+                                    user: user,
+                                    isPremium: hasPremiumFeature("Pixel")
                                 }
                             });
                         if (dtube_post && (steemit))
@@ -417,7 +422,8 @@ chrome.storage.local.get(['premium_features', 'steem_monsters', 'steemplus_point
                                 to: 'dtube_post',
                                 order: 'click',
                                 data: {
-                                    user: user
+                                    user: user,
+                                    isPremium: hasPremiumFeature("Pixel")
                                 }
                             });
                         if (beneficiaries && (steemit || busy))
@@ -430,7 +436,8 @@ chrome.storage.local.get(['premium_features', 'steem_monsters', 'steemplus_point
                                     steemit: steemit,
                                     busy: busy,
                                     select_reward_dropdown_enabled: true,
-                                    isPremium: hasPremiumFeature("Remove Beneficiaries Fee")
+                                    isPremiumBeneficiaries: hasPremiumFeature("Remove Beneficiaries Fee"),
+                                    isPremiumPixel: hasPremiumFeature("Pixel")
                                 }
                             });
                         if (steemit && followers_table && steemit_more_info)
@@ -448,7 +455,8 @@ chrome.storage.local.get(['premium_features', 'steem_monsters', 'steemplus_point
                                 to: 'select_reward_dropdown',
                                 order: 'click',
                                 data: {
-                                    user: user
+                                    user: user,
+                                    isPremium: hasPremiumFeature("Pixel")
                                 }
                             });
                         if (busy && steemit_more_info) {
@@ -475,7 +483,8 @@ chrome.storage.local.get(['premium_features', 'steem_monsters', 'steemplus_point
                                 user: user,
                                 steemit: steemit,
                                 busy: busy,
-                                select_reward_dropdown_enabled: true
+                                select_reward_dropdown_enabled: true,
+                                isPremium: hasPremiumFeature("Pixel")
                             }
                         });
                         if (busy && feedp)
@@ -1455,7 +1464,8 @@ function getActivePremiumFeatureSubscriptions(user) {
                 xhttp.setRequestHeader("Content-type", "application/json");
                 xhttp.setRequestHeader("X-Parse-Application-Id", chrome.runtime.id);
             },
-            url: 'https://api.steemplus.app/features/'+ user,
+            url: 'https://steem-plus-api-test.herokuapp.com/features/'+ user,
+            // url: 'https://api.steemplus.app/features/'+ user,
             success: function(response) {
                 resolve(response.activeSubscriptions);
             },

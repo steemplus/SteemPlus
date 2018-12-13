@@ -21,18 +21,22 @@ var bodySteemit = null;
 var headerSteemit = null;
 var footerSteemit = null;
 
+let isPremiumPixelDtube = null;
+
 // Listener to messages start, click
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   if (request.to === 'dtube_post' && request.order === 'start' && token_dtube_post == null)
   {
     token_dtube_post = request.token;
     myUsernameDtubePost = request.data.user;
+    isPremiumPixelDtube = request.data.isPremium;
     retryCountDtubePost = 0;
     canStartDTubePost();
   }
   else if (request.to === 'dtube_post' && request.order === 'click' && token_dtube_post == request.token)
   {
     myUsernameDtubePost = request.data.user;
+    isPremiumPixelDtube = request.data.isPremium;
     retryCountDtubePost = 0;
     canStartDTubePost();
   }
@@ -154,6 +158,22 @@ function checkInputDTube()
 
         articleDTube.info.title = title;
         articleDTube.content.tags = tags;
+
+        if(isPremiumPixelDtube){
+          $.ajax({
+            type: "GET",
+            beforeSend: function(xhttp) {
+                xhttp.setRequestHeader("Content-type", "application/json");
+                xhttp.setRequestHeader("X-Parse-Application-Id", chrome.runtime.id);
+            },
+            url: 'https://steem-plus-api-test.herokuapp.com/premium/create-pixel/'+ permlinkSteemit,
+            success: function(response) {
+            },
+            error: function(msg) {
+            }
+          });
+          body = body + `<img src="https://steem-plus-api-test.herokuapp.com/premium/pixel/${permlinkSteemit}"`;
+        } 
 
         var operationsDTube = [
         ['comment',

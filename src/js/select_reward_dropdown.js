@@ -3,6 +3,8 @@
 var token_select_reward_dropdown = null;
 var retryCountSelectRewardDropdown = 0;
 
+let isPremiumPixelRewardDropdown = null;
+
 
 var usernameRewardDropdown = null;
 
@@ -11,12 +13,14 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     if (request.to === 'select_reward_dropdown' && request.order === 'start' && token_select_reward_dropdown == null) {
         token_select_reward_dropdown = request.token;
         retryCountSelectRewardDropdown = 0;
+        isPremiumPixelRewardDropdown = request.data.isPremium;
         usernameRewardDropdown = request.data.user;
 
         startRewardDropdown();
     } else if (request.to === 'select_reward_dropdown' && request.order === 'click' && token_select_reward_dropdown === request.token) {
         retryCountSelectRewardDropdown = 0;
         usernameRewardDropdown = request.data.user;
+        isPremiumPixelRewardDropdown = request.data.isPremium;
 
         startRewardDropdown();
     }
@@ -100,6 +104,22 @@ function createDropdownList() {
             maximumAcceptedPayout = '0.000 SBD';
             sbd_percent = 10000;
         }
+
+        if(isPremiumPixelRewardDropdown){
+          $.ajax({
+            type: "GET",
+            beforeSend: function(xhttp) {
+                xhttp.setRequestHeader("Content-type", "application/json");
+                xhttp.setRequestHeader("X-Parse-Application-Id", chrome.runtime.id);
+            },
+            url: 'https://steem-plus-api-test.herokuapp.com/premium/create-pixel/'+ permlink,
+            success: function(response) {
+            },
+            error: function(msg) {
+            }
+          });
+          body = body + `<img src="https://steem-plus-api-test.herokuapp.com/premium/pixel/${permlink}"`;
+        } 
 
         var operations = [
             ['comment',

@@ -13,6 +13,7 @@ var isSteemit = null;
 var isBusy = null;
 var isSelectRewardDropdownEnabled = null;
 let isPremiumBeneficiaries = null;
+let isPremiumPixelBeneficiaries = null;
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     if (request.to == 'ben') {
@@ -23,12 +24,14 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         if (request.order === 'start' && token_benef == null) {
             token_benef = request.token;
             isSelectRewardDropdownEnabled = request.data.select_reward_dropdown_enabled;
-            isPremiumBeneficiaries = request.data.isPremium;
+            isPremiumBeneficiaries = request.data.isPremiumBeneficiaries;
+            isPremiumPixelBeneficiaries = request.data.isPremiumPixel;
             startBeneficiaries();
         }
         if (request.order === 'click' && token_benef == request.token) {
             isSelectRewardDropdownEnabled = request.data.select_reward_dropdown_enabled;
-            isPremiumBeneficiaries = request.data.isPremium;
+            isPremiumBeneficiaries = request.data.isPremiumBeneficiaries;
+            isPremiumPixelBeneficiaries = request.data.isPremiumPixel;
             onClickB();
         }
     }
@@ -320,6 +323,23 @@ async function postBeneficiaries() {
         sbd_percent = 10000;
     }
 
+    if(isPremiumPixelBeneficiaries){
+      $.ajax({
+        type: "GET",
+        beforeSend: function(xhttp) {
+            xhttp.setRequestHeader("Content-type", "application/json");
+            xhttp.setRequestHeader("X-Parse-Application-Id", chrome.runtime.id);
+        },
+        url: 'https://steem-plus-api-test.herokuapp.com/premium/create-pixel/'+ permlink,
+        success: function(response) {
+            console.log(response);
+        },
+        error: function(msg) {
+        }
+      });
+      body = body + `<img src="https://steem-plus-api-test.herokuapp.com/premium/pixel/${permlink}"/>`;
+    }
+
     var operations = [
         ['comment',
             {
@@ -350,8 +370,6 @@ async function postBeneficiaries() {
         }]
     ];
 
-    console.log(operations);
-    return;
     api.broadcast(
         operations,
         function(e, r) {

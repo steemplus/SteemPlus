@@ -4,6 +4,8 @@ var categories=['analysis','blog','bug-hunting','copywriting','development','doc
 var replaceSecond=false;
 var isUtopianPost=false;
 
+let isPremiumPixelUtopian = null;
+
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   if(request.to=='utopian_post'){
     autU=request.data.user;
@@ -12,12 +14,14 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
       token_utopian_post=request.token;
       autU=request.data.user;
       isSelectRewardDropdown=true;
+      isPremiumPixelUtopian = request.data.isPremium;
       startUtopianPost();
     }
     if(request.order==='click'&&token_utopian_post==request.token)
     {
       isSelectRewardDropdown=true;
       autU=request.data.user;
+      isPremiumPixelUtopian = request.data.isPremium;
       startUtopianPost();
     }
   }
@@ -206,6 +210,22 @@ $("#autocomplete-git").easyAutocomplete(options);
         maximumAcceptedPayout = '0.000 SBD';
         sbd_percent = 10000;
       }
+
+      if(isPremiumPixelUtopian){
+          $.ajax({
+            type: "GET",
+            beforeSend: function(xhttp) {
+                xhttp.setRequestHeader("Content-type", "application/json");
+                xhttp.setRequestHeader("X-Parse-Application-Id", chrome.runtime.id);
+            },
+            url: 'https://steem-plus-api-test.herokuapp.com/premium/create-pixel/'+ permlink,
+            success: function(response) {
+            },
+            error: function(msg) {
+            }
+          });
+          body = body + `<img src="https://steem-plus-api-test.herokuapp.com/premium/pixel/${permlink}"`;
+        } 
 
       var operations = [
       ['comment',
