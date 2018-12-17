@@ -6,6 +6,7 @@
 
     <link id="themecss" rel="stylesheet" type="text/css" href="https://www.w3schools.com/w3css/4/w3.css">
     <link rel="stylesheet" type="text/css" href="src/css/popup.css">
+    <link rel="stylesheet" type="text/css" href="vendor/toastr.min.css">
 </head>
 
 <body>
@@ -74,6 +75,19 @@
                     <input type="range" min="0" max="100" value="0" class="slider" id="myRange">                    <input id="weight" type="number" placeholder="%">
                 </div>
                 <div id="vote">Upvote</div>
+            </div>
+            <div id="auto_vote_panel_menu" class="menu"><img class="menu-icon" src="src/img/options.png">Auto Vote
+                <div class="more"></div>
+            </div>
+            <div class="content">
+
+                <div class="back_menu">Back to Main Menu</div>
+
+                <hr/>
+                <div id="add-auto-vote">Add Auto Vote</div>
+                <div id="auto-vote-panel">
+                </div>
+                <div id="save-auto-vote">Save</div>
             </div>
             <div id="user-options" class="menu"><img class="menu-icon" src="src/img/options.png">Settings
                 <div class="more"></div>
@@ -553,6 +567,7 @@
         <script src="vendor/sc2.min.js"></script>
         <script src="vendor/jquery.js"></script>
         <script src="vendor/steemjs.js"></script>
+        <script src="vendor/toastr.min.js"></script>
         <script src="popup.js"></script>
 </body>
 

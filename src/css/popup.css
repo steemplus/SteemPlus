@@ -177,7 +177,7 @@ hr {
     cursor: pointer;
 }
 
-#vote {
+#vote, #add-auto-vote, #save-auto-vote {
     cursor: pointer;
     background: url('../img/logo.png') no-repeat 15px 15px;
     font-weight: bold;
@@ -193,7 +193,7 @@ hr {
     border-radius: 5px;
 }
 
-#vote:hover {
+#vote:hover, #add-auto-vote:hover, #save-auto-vote:hover {
     opacity: 0.8;
 }
 
@@ -201,6 +201,42 @@ hr {
     display: none;
     overflow: hidden;
 }
+
+#auto-vote-panel {
+    padding: 1rem;
+}
+
+.auto-vote-inputs {
+    margin-bottom: 0.5rem;
+}
+
+.auto-vote-inputs > input {
+    padding-left: 0.5rem;
+}
+
+.auto-vote-inputs > .input-name {
+    width: 60%;
+}
+
+.auto-vote-inputs > .input-percent {
+    width: 30%;
+    float: right;
+}
+
+.auto-vote-inputs:hover i{
+    display: block;
+} 
+
+.delete-auto-vote {
+    float: left;
+    color: red;
+    display: none;
+    font-style: normal;
+    margin-right: 0.5rem;
+    cursor: pointer;
+}
+
+
 
 .menu {
     cursor: pointer;

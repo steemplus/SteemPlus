@@ -8,10 +8,29 @@ var menus = document.getElementsByClassName("menu");
 var content = document.getElementsByClassName("content");
 var back = document.getElementsByClassName("back_menu");
 var isConnectedToSteemConnect = null;
+let autoVotes = [];
+
+toastr.options = {
+    "closeButton": true,
+    "debug": false,
+    "newestOnTop": false,
+    "progressBar": false,
+    "positionClass": "toast-bottom-center",
+    "preventDuplicates": false,
+    "onclick": null,
+    "showDuration": "300",
+    "hideDuration": "1000",
+    "timeOut": "5000",
+    "extendedTimeOut": "1000",
+    "showEasing": "swing",
+    "hideEasing": "linear",
+    "showMethod": "fadeIn",
+    "hideMethod": "fadeOut"
+};
 
 $('#shortcuts, .switch-text').hide();
 // Get local parameters stored using Chrome Storage API
-chrome.storage.local.get(['premium_features','sm_batch','steem_monsters', 'steemplus_points', 'dtube_post','vote_weight_slider_busy', 'tip_user', 'utopian_post', 'resteem_indicator', 'add_signature', 'author_popup_info', 'rewards_tab', 'wallet_history', 'article_count', 'witnesses_tab', 'classification_user', 'board_reward', 'favorite_section', 'post_floating_bottom_bar', 'md_editor_beautifier', 'blog_histogram', 'user_info_popover', 'gif_picker', 'boost_button', 'followers_table', 'vote_weight_slider', 'mentions_tab', 'search_bar', 'external_link_tab', 'vote_tab', 'steemit_more_info', 'post_votes_list', 'onboarding', 'oneup', 'sessionToken', 'tokenExpire', 'weight', 'resteem', 'blacklist', 'whitelist', 'reputation', 'rep', 'badge', 'del', 'ben', 'feedp', 'drop', 'acc_v', 'transfers'], function(items) {
+chrome.storage.local.get(['auto_vote_list','premium_features','sm_batch','steem_monsters', 'steemplus_points', 'dtube_post','vote_weight_slider_busy', 'tip_user', 'utopian_post', 'resteem_indicator', 'add_signature', 'author_popup_info', 'rewards_tab', 'wallet_history', 'article_count', 'witnesses_tab', 'classification_user', 'board_reward', 'favorite_section', 'post_floating_bottom_bar', 'md_editor_beautifier', 'blog_histogram', 'user_info_popover', 'gif_picker', 'boost_button', 'followers_table', 'vote_weight_slider', 'mentions_tab', 'search_bar', 'external_link_tab', 'vote_tab', 'steemit_more_info', 'post_votes_list', 'onboarding', 'oneup', 'sessionToken', 'tokenExpire', 'weight', 'resteem', 'blacklist', 'whitelist', 'reputation', 'rep', 'badge', 'del', 'ben', 'feedp', 'drop', 'acc_v', 'transfers'], function(items) {
     var steemConnect = (items.sessionToken === undefined || items.tokenExpire === undefined || items.tokenExpire < Date.now()) ? {
         connect: false
     } : {
@@ -90,6 +109,7 @@ chrome.storage.local.get(['premium_features','sm_batch','steem_monsters', 'steem
             $('#loginButton').css('display', 'none');
             $('.info_user_connected').css('display', 'none');
             $('#vote-menu').css('display', 'none');
+            $('#auto_vote_panel_menu').css('display', 'none');
             $('.disabled-feature > label > input').prop('disabled', true);
             $('.disabled-feature').attr('title', "This feature is temporarily disabled.");
             $('.disabled-feature').prop('checked', false);
@@ -139,6 +159,20 @@ chrome.storage.local.get(['premium_features','sm_batch','steem_monsters', 'steem
     blog_histogram = items.blog_histogram == undefined ? 'hide' : items.blog_histogram; //default hidden
     md_editor_beautifier = items.md_editor_beautifier == undefined ? 'show' : items.md_editor_beautifier;
     post_floating_bottom_bar = items.post_floating_bottom_bar == undefined ? 'show' : items.post_floating_bottom_bar;
+
+    autoVotes = items.auto_vote_list == undefined ? [] : items.auto_vote_list;
+    autoVotes.forEach((autoVote) => {
+        console.log(autoVotes);
+        $('#auto-vote-panel').append(
+            $(`
+                <div class="auto-vote-inputs">
+                    <input type="text" placeholder="Name" class="input-name" value="${autoVote.username}" />
+                    <input type="number" placeholder="%" class="input-percent" value="${autoVote.percent}"/>
+                    <i class="delete-auto-vote">X</i>
+                </div>`
+            )
+        );
+    });
 
     if (weight !== undefined) {
         document.getElementById('weight').value = weight;
@@ -277,6 +311,7 @@ chrome.storage.local.get(['premium_features','sm_batch','steem_monsters', 'steem
 
 //Handles menu navigation
 Array.from(menus).forEach(function(element, i, arr) {
+    console.log(element);
     element.addEventListener('click', function() {
         content[i].style.display = 'block';
         Array.from(menus).forEach(function(element, i, arr) {
@@ -288,6 +323,7 @@ Array.from(menus).forEach(function(element, i, arr) {
 });
 
 Array.from(back).forEach(function(element, i, arr) {
+    console.log(element);
     element.addEventListener('click', function() {
         content[i].style.display = 'none';
         Array.from(menus).forEach(function(element, i, arr) {
@@ -639,6 +675,41 @@ $('.back_menu').click(function() {
 $('#user-options').click(function() {
     $('.info_user').hide();
     document.getElementById("logo").style.display = "none";
+});
+
+$('#auto_vote_panel_menu').click(function() {
+    $('.info_user').hide();
+    document.getElementById("logo").style.display = "none";
+});
+
+$('#add-auto-vote').click(function(){
+    $('#auto-vote-panel').append(
+        $(`
+            <div class="auto-vote-inputs">
+                <input type="text" placeholder="Name" class="input-name" />
+                <input type="number" placeholder="%" class="input-percent" />
+                <i class="delete-auto-vote">X</i>
+            </div>`
+        )
+    );
+});
+
+$('.delete-auto-vote').click(() => {
+    // TODO remove auto vote
+})
+
+$('#save-auto-vote').click(function(){
+    autoVotes = [];
+    $('.auto-vote-inputs').each(function(index, elem){
+        let username = $(elem).find('.input-name').val();
+        let percent = $(elem).find('.input-percent').val();
+        autoVotes.push({'username': username, 'percent': percent});
+        // TODO : Add check on username
+    });
+    chrome.storage.local.set({
+        auto_vote_list: autoVotes
+    });
+    toastr.success('Auto Votes saved !', "SteemPlus - Auto Vote");
 });
 
 //Oboarding Flow
