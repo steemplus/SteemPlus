@@ -193,6 +193,10 @@ hr {
     border-radius: 5px;
 }
 
+#add-auto-vote, #save-auto-vote {
+    background: transparent;
+}
+
 #vote:hover, #add-auto-vote:hover, #save-auto-vote:hover {
     opacity: 0.8;
 }
@@ -210,8 +214,13 @@ hr {
     margin-bottom: 0.5rem;
 }
 
-.auto-vote-inputs > input {
+.auto-vote-inputs > input, #vote-after {
     padding-left: 0.5rem;
+    border-radius: 2px;
+    border: solid blue 1px;
+    -webkit-box-shadow: 10px 11px 9px -11px rgba(201,201,201,0.8);
+    -moz-box-shadow: 10px 11px 9px -11px rgba(201,201,201,0.8);
+    box-shadow: 10px 11px 9px -11px rgba(201,201,201,0.8);
 }
 
 .auto-vote-inputs > .input-name {
@@ -234,6 +243,29 @@ hr {
     font-style: normal;
     margin-right: 0.5rem;
     cursor: pointer;
+}
+
+/* Select in auto vote */
+.select-style {
+    margin: 20px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    overflow: hidden;
+    background: #fafafa url("img/more.png") no-repeat 90% 50%;
+}
+
+.select-style select {
+    padding: 5px 8px;
+    width: 130%;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+    background-image: none;
+    -webkit-appearance: none;
+}
+
+.select-style select:focus {
+    outline: none;
 }
 
 

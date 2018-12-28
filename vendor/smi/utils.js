@@ -7,6 +7,40 @@
     const noImageAvailable = "src/img/no-image-available-hi.png";
     const APIBaseUrl="https://api.steemplus.app/";
 
+    var addMinutes = function(date, minutes) {
+        let d = new Date();
+        let offset = d.getTimezoneOffset();
+        let result = new Date(date);
+        result.setMinutes(result.getMinutes() - offset);
+        result.setMinutes(result.getMinutes() + parseInt(minutes));
+        return result;
+    };
+
+    var addHours = function(date, hours) {
+        let d = new Date();
+        let offset = d.getTimezoneOffset();
+        let result = new Date(date);
+        result.setMinutes(result.getMinutes() - offset);
+        result.setHours(result.getHours() + parseInt(hours));
+        return result;
+    };
+
+    var addDays = function(date, days) {
+        let d = new Date();
+        let offset = d.getTimezoneOffset();
+        let result = new Date(date);
+        result.setMinutes(result.getMinutes() - offset);
+        result.setDate(result.getDate() + parseInt(days));
+        return result;
+    };
+
+    var diffDates = function(date1, date2){
+        let d1Ms = date1.getTime();
+        let d2Ms = date2.getTime();
+
+        return date2 - date1;
+    };
+
     var getPageAccountName = function() {
         var parseLocation = window.location.pathname.match(pageAccountNameRegexp);
         if (!parseLocation) {
@@ -713,6 +747,10 @@
     }
 
     var Utils = {
+        addHours: addHours,
+        addMinutes: addMinutes,
+        addDays: addDays,
+        diffDates: diffDates,
         getPageAccountName: getPageAccountName,
         getLoggedUserName: getLoggedUserName,
         getUserProfileBannerForAccountName: getUserProfileBannerForAccountName,

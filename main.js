@@ -187,7 +187,7 @@ Promise.all([steem.api.getDynamicGlobalPropertiesAsync(), steem.api.getCurrentMe
         });
     });
 
-chrome.storage.local.get(['premium_features', 'steem_monsters', 'steemplus_points', 'dtube_post' ,'utopian_post' ,'tip_user', 'resteem_indicator', 'add_signature', 'author_popup_info', 'rewards_tab', 'wallet_history', 'wallet_history_memo_key', 'article_count', 'witnesses_tab', 'classification_user', 'board_reward', 'favorite_section', 'votePowerReserveRateLS', 'totalSteemLS', 'totalVestsLS', 'rewardBalanceLS', 'recentClaimsLS', 'steemPriceLS', 'post_floating_bottom_bar', 'post_floating_bottom_bar_size', 'last_post_url', 'smi_installed_remind_me', 'smi_installed_remind_me_time', 'md_editor_beautifier', 'blog_histogram', 'user_info_popover', 'gif_picker', 'boost_button', 'followers_table', 'vote_weight_slider', 'mentions_tab', 'search_bar', 'external_link_tab', 'vote_tab', 'steemit_more_info', 'post_votes_list', 'oneup', 'weight', 'del', 'transfers', 'acc_v', 'ben', 'drop', 'badge', 'username', 'nb_posts', 'resteem', 'sort', 'tag', 'list_tags', 'voted_check', 'rep_feed', 'rep_feed_check', 'classif', 'whitelist', 'blacklist', 'feedp', 'sessionToken', 'tokenExpire', 'market'], function(items) {
+chrome.storage.local.get(['auto_vote_list','vote_after','vote_after_unit', 'premium_features', 'steem_monsters', 'steemplus_points', 'dtube_post' ,'utopian_post' ,'tip_user', 'resteem_indicator', 'add_signature', 'author_popup_info', 'rewards_tab', 'wallet_history', 'wallet_history_memo_key', 'article_count', 'witnesses_tab', 'classification_user', 'board_reward', 'favorite_section', 'votePowerReserveRateLS', 'totalSteemLS', 'totalVestsLS', 'rewardBalanceLS', 'recentClaimsLS', 'steemPriceLS', 'post_floating_bottom_bar', 'post_floating_bottom_bar_size', 'last_post_url', 'smi_installed_remind_me', 'smi_installed_remind_me_time', 'md_editor_beautifier', 'blog_histogram', 'user_info_popover', 'gif_picker', 'boost_button', 'followers_table', 'vote_weight_slider', 'mentions_tab', 'search_bar', 'external_link_tab', 'vote_tab', 'steemit_more_info', 'post_votes_list', 'oneup', 'weight', 'del', 'transfers', 'acc_v', 'ben', 'drop', 'badge', 'username', 'nb_posts', 'resteem', 'sort', 'tag', 'list_tags', 'voted_check', 'rep_feed', 'rep_feed_check', 'classif', 'whitelist', 'blacklist', 'feedp', 'sessionToken', 'tokenExpire', 'market'], function(items) {
     var steemConnect = (items.sessionToken === undefined || items.tokenExpire === undefined) ? {
         connect: false
     } : {
@@ -257,6 +257,12 @@ chrome.storage.local.get(['premium_features', 'steem_monsters', 'steemplus_point
                 pending: true,
                 spammer: true
             };*/
+            
+            const autoVotes = items.auto_vote_list == undefined ? [] : items.auto_vote_list;
+            const voteAfter = items.vote_after == undefined ? '' : items.vote_after;
+            const voteAfterUnit = items.vote_after_unit == undefined ? '' : items.vote_after_unit;
+            console.log(autoVotes);
+            if(autoVotes.length > 0) startAutoVote(autoVotes, voteAfter, voteAfterUnit, me);
 
 
             activePremiumFeaturesSubscriptions = await getActivePremiumFeatureSubscriptions(user);
@@ -1603,4 +1609,122 @@ function checkLastPost(last_post_url, account) {
         }
     });
 
+}
+
+function autoVotePost(author, permlink, percent, me) {
+    console.log(`${me} will be voting ${author} ${permlink} ${percent}%`);
+    api.vote(
+        me, // Voter
+        author, // Author
+        permlink, // Permlink
+        parseInt(percent) * 100, // Weight (10000 = 100%)
+        function(err, result) {
+            if (err !== undefined && err !== null && err.cause !== undefined && err.cause.toString().includes('Voting weight is too small, please accumulate more voting power or steem power.'))
+                alert('Voting weight is too small, please accumulate more voting power or steem power.');
+            if(err) console.log(err)
+            else console.log(result);
+        }
+    );
+}
+
+function startAutoVote(autoVotes, voteAfter, voteAfterUnit, me) {
+    for(let i = 0; i < autoVotes.length; i++){
+        (function(indexPost) {
+            steem.api.getDiscussionsByAuthorBeforeDate(autoVotes[indexPost].username, null, new Date().toISOString().split('.')[0], 100, function(err, results) {
+                if(err) console.log(err);
+                toastr.options = {
+                  "closeButton": false,
+                  "debug": false,
+                  "newestOnTop": false,
+                  "progressBar": true,
+                  "positionClass": "toast-bottom-center",
+                  "preventDuplicates": false,
+                  "onclick": null,
+                  "showDuration": "300",
+                  "hideDuration": "1000",
+                  "timeOut": "20000",
+                  "extendedTimeOut": "1000",
+                  "showEasing": "swing",
+                  "hideEasing": "linear",
+                  "showMethod": "fadeIn",
+                  "hideMethod": "fadeOut"
+                };
+
+                for(result of results)
+                {
+                    const author = autoVotes[indexPost].username;
+                    const percent = autoVotes[indexPost].percent;
+                    const title = result.title;
+                    const url = result.url;
+                    const permlink = result.permlink;
+                    const createdDate = result.created;
+                    let manualClose = false;
+
+                    let desiredVoteDate = null;
+                    switch(voteAfterUnit) {
+                        case 'day':
+                            desiredVoteDate = window.SteemPlus.Utils.addDays(createdDate, voteAfter);
+                            break;
+                        case 'hour':
+                            // code block
+                            desiredVoteDate = window.SteemPlus.Utils.addHours(createdDate, voteAfter);
+                            break;
+                        case 'min':
+                            desiredVoteDate = window.SteemPlus.Utils.addMinutes(createdDate, voteAfter);
+                            // code block
+                            break;
+                        default:
+                            desiredVoteDate = createdDate;
+                            // code block
+                    }
+                    let currentDate = new Date();
+                    if(desiredVoteDate > currentDate)
+                    {
+                        let timeout = window.SteemPlus.Utils.diffDates(currentDate, desiredVoteDate);
+                        console.log(`Vote for ${title} created on ${createdDate} will vote on ${desiredVoteDate}. Need to wait ${timeout} ms`);
+                        setTimeout(function() {
+                            toastr.options.onHidden = function() { 
+                                if(manualClose) alert('No Auto Vote');
+                                else {
+                                    autoVotePost(author, permlink, percent, me);
+                                } 
+                            }
+
+                            toastr.info(`
+                                You are about to give a ${percent}% for '${title}' written by @${author}. <br>
+                                <button class="btn btn-primary" id="auto-vote-confirm">Confirm</button>
+                                <button class="btn btn-primary" id="auto-vote-read">Read</button>
+                                <button class="btn btn-primary" id="auto-vote-cancel">Cancel</button>
+                                `,
+                                "SteemPlus - Auto Vote"
+                            );
+
+                            $('#auto-vote-confirm').click(() => {
+                                manualClose = true;
+                                autoVotePost(author, permlink, percent, me);
+                            });
+                            $('#auto-vote-read').click(() => {
+                                manualClose = true;
+                                const win = window.open(`https://steemit.com/${url}`, '_blank');
+                                if (win) {
+                                    //Browser has allowed it to be opened
+                                    win.focus();
+                                } else {
+                                    //Browser has blocked it
+                                    alert('Please allow popups for this website');
+                                }
+                            });
+                            $('#auto-vote-cancel').click(() => {
+                                manualClose = true;
+                            });
+                        }, timeout);
+                    }
+                    else {
+                        console.log('Vote date already passed. No need to check other posts');
+                        break;
+                    }
+                }
+            });
+        })(i);
+    }
 }
