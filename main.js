@@ -257,15 +257,15 @@ chrome.storage.local.get(['auto_vote_list','vote_after','vote_after_unit', 'prem
                 pending: true,
                 spammer: true
             };*/
+            activePremiumFeaturesSubscriptions = await getActivePremiumFeatureSubscriptions(user);
             
             const autoVotes = items.auto_vote_list == undefined ? [] : items.auto_vote_list;
             const voteAfter = items.vote_after == undefined ? '' : items.vote_after;
             const voteAfterUnit = items.vote_after_unit == undefined ? '' : items.vote_after_unit;
             console.log(autoVotes);
-            if(autoVotes.length > 0) startAutoVote(autoVotes, voteAfter, voteAfterUnit, me);
+            if(autoVotes.length > 0 && hasPremiumFeature("Auto Vote")) startAutoVote(autoVotes, voteAfter, voteAfterUnit, me);
 
 
-            activePremiumFeaturesSubscriptions = await getActivePremiumFeatureSubscriptions(user);
 
             console.log('Starting features online...', user);
             if (utopian_post && (steemit))

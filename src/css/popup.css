@@ -206,6 +206,15 @@ hr {
     overflow: hidden;
 }
 
+#auto-vote-settings {
+    padding: 1rem;
+}
+
+#vote-after {
+    width: 20%;
+    height: 1.5rem;
+}
+
 #auto-vote-panel {
     padding: 1rem;
 }
@@ -228,7 +237,7 @@ hr {
 }
 
 .auto-vote-inputs > .input-percent {
-    width: 30%;
+    width: 25%;
     float: right;
 }
 
@@ -247,11 +256,10 @@ hr {
 
 /* Select in auto vote */
 .select-style {
-    margin: 20px;
     border: 1px solid #ccc;
     border-radius: 3px;
     overflow: hidden;
-    background: #fafafa url("img/more.png") no-repeat 90% 50%;
+    height: 1.5rem;
 }
 
 .select-style select {
