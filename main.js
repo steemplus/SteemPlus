@@ -262,7 +262,6 @@ chrome.storage.local.get(['auto_vote_list','vote_after','vote_after_unit', 'prem
             const autoVotes = items.auto_vote_list == undefined ? [] : items.auto_vote_list;
             const voteAfter = items.vote_after == undefined ? '' : items.vote_after;
             const voteAfterUnit = items.vote_after_unit == undefined ? '' : items.vote_after_unit;
-            console.log(autoVotes);
             if(autoVotes.length > 0 && hasPremiumFeature("Auto Vote")) startAutoVote(autoVotes, voteAfter, voteAfterUnit, me);
 
 
@@ -1612,9 +1611,9 @@ function checkLastPost(last_post_url, account) {
 }
 
 function autoVotePost(author, permlink, percent, me) {
-    console.log(`${me} will be voting ${author} ${permlink} ${percent}%`);
+    console.log(`${me.name} will be voting ${author} ${permlink} ${percent}%`);
     api.vote(
-        me, // Voter
+        me.name, // Voter
         author, // Author
         permlink, // Permlink
         parseInt(percent) * 100, // Weight (10000 = 100%)
@@ -1628,6 +1627,7 @@ function autoVotePost(author, permlink, percent, me) {
 }
 
 function startAutoVote(autoVotes, voteAfter, voteAfterUnit, me) {
+    console.log(autoVotes, voteAfter, voteAfterUnit, me);
     for(let i = 0; i < autoVotes.length; i++){
         (function(indexPost) {
             steem.api.getDiscussionsByAuthorBeforeDate(autoVotes[indexPost].username, null, new Date().toISOString().split('.')[0], 100, function(err, results) {
