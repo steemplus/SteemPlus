@@ -38,94 +38,106 @@ function startPremiumFeatures() {
 // @param : premiumFeatureList : HTML element representing the tab
 function createTabPremiumFeatureList(premiumFeatureList) {
 
-  // Calculate the total for all the subscriptions
-  // This will help user to know how much they spend per month
-  let totalAmountSubscription = 0;
-  if(activePremiumFeaturesSubscriptionsUser)
-    activePremiumFeaturesSubscriptionsUser.map(function(sub){
-      totalAmountSubscription += sub.premiumFeature.price;
-    });
+  Promise.all([steem.api.getDynamicGlobalPropertiesAsync(), window.SteemPlus.api.getLastBlockID()])
+    .then(function(value) {
+        let nbBlockDifference = parseInt(value[0].last_irreversible_block_num) - parseInt(value[1]);
 
-  // Create tab content
-  premiumFeatureList.html('\
-  <div class="feed-layout container">\
-    <div class="row">\
-      <div class="UserProfile__tab_content UserProfile__tab_content_smi UserProfile__tab_content_PremiumFeatures column layout-list">\
-        <article class="articles">\
-          <div class="premiumFeaturesTab">\
-            <h1 class="articles__h1" style="margin-bottom:20px">\
-              Feature List\
-            </h1>\
-            <hr class="articles__hr"/>\
-              <h2 class="articles__h1" style="margin-bottom:20px">\
-                Total Spent per month : <span class="total-per-month">'+ totalAmountSubscription +'</span> SPP\
-              </h2>\
-              <div class="LoadingIndicator loading-feature-list circle">\
-                <div></div>\
-              </div>\
-            </center>\
-            <div class="premium-feature-list-content"></div>\
-            <br>\
-          </div>\
-        </article>\
-      </div>\
-    </div>\
-  </div>');
+        let delaySteemSQL = nbBlockDifference * 3 / 60;
+        
+        // Calculate the total for all the subscriptions
+        // This will help user to know how much they spend per month
+        let totalAmountSubscription = 0;
+        if(activePremiumFeaturesSubscriptionsUser)
+          activePremiumFeaturesSubscriptionsUser.map(function(sub){
+            totalAmountSubscription += sub.premiumFeature.price;
+          });
 
-  // API call to download the list of all the premium features
-  $.ajax({
-    type: "GET",
-    beforeSend: function(xhttp) {
-        xhttp.setRequestHeader("Content-type", "application/json");
-        xhttp.setRequestHeader("X-Parse-Application-Id", chrome.runtime.id);
-    },
-    url: 'https://api.steemplus.app/premium-feature-list',
-    success: function(features) {
-        features.forEach((feature, index) => {
-
-            // Check is a feature is active for user's account
-            const isActive = findFeature(feature.name) !== undefined;
-            const activeFeature = findFeature(feature.name);
-
-            // Create line in tab.
-            // If feature is active, add unsubscribe button,
-            // If not create subscribe button
-            $('.premium-feature-list-content').append(`
-              <div class="feature row ${index % 2 === 0 ? 'feature-even' : ''}">
-                <div class="column small-12 medium-8 description-feature">
-                  ${feature.name}
-                  <div class="FormattedHTMLMessage secondary">
-                    ${feature.description}
-                  </div>
-                  ${getCancelMessage(activeFeature)}
-                  ${getSubscriptionPanel(isActive, activeFeature)}
+        // Create tab content
+        premiumFeatureList.html(`
+        <div class="feed-layout container">
+          <div class="row">
+            <div class="UserProfile__tab_content UserProfile__tab_content_smi UserProfile__tab_content_PremiumFeatures column layout-list">
+              <article class="articles">
+                <div class="premiumFeaturesTab">
+                  <h1 class="articles__h1" style="margin-bottom:20px">
+                    Feature List
+                  </h1>
+                  <hr class="articles__hr"/>
+                    <h2 class="articles__h1" style="margin-bottom:20px">
+                      Total Spent per month : <span class="total-per-month">${totalAmountSubscription}</span> SPP
+                    </h2>
+                    <h2 class="articles__h1 disclaimer_premium_feature" style="margin-bottom:20px">
+                      Subscribing to a premium feature can take up to 5 minutes. You don't need to resend a memo to SteemPlus.
+                      ${(delaySteemSQL > 1 ? `SteemSQL is delayed for more than ${delaySteemSQL} minute(s). You subscription will take longer.` : '')}
+                    </h2>
+                    <div class="LoadingIndicator loading-feature-list circle">
+                      <div></div>
+                    </div>
+                  </center>
+                  <div class="premium-feature-list-content"></div>
+                  <br>
                 </div>
-                <div class="column small-12 medium-4 payment-feature">
-                  <p>${feature.price} SPP/month</p>
-                  ${!isActive || activeFeature.isCanceled ? `<button class="button-steemit-subscribe" name="${feature.name}">Subscribe</button>` : `<button class="button-steemit-unsubscribe" name="${feature.name}">Unsubscribe</button>`}
-              </div>`
-            );
+              </article>
+            </div>
+          </div>
+        </div>`);
+
+        // API call to download the list of all the premium features
+        $.ajax({
+          type: "GET",
+          beforeSend: function(xhttp) {
+              xhttp.setRequestHeader("Content-type", "application/json");
+              xhttp.setRequestHeader("X-Parse-Application-Id", chrome.runtime.id);
+          },
+          url: 'https://api.steemplus.app/premium-feature-list',
+          success: function(features) {
+              features.forEach((feature, index) => {
+
+                  // Check is a feature is active for user's account
+                  const isActive = findFeature(feature.name) !== undefined;
+                  const activeFeature = findFeature(feature.name);
+
+                  // Create line in tab.
+                  // If feature is active, add unsubscribe button,
+                  // If not create subscribe button
+                  $('.premium-feature-list-content').append(`
+                    <div class="feature row ${index % 2 === 0 ? 'feature-even' : ''}">
+                      <div class="column small-12 medium-8 description-feature">
+                        ${feature.name}
+                        <div class="FormattedHTMLMessage secondary">
+                          ${feature.description}
+                        </div>
+                        ${getCancelMessage(activeFeature)}
+                        ${getSubscriptionPanel(isActive, activeFeature)}
+                      </div>
+                      <div class="column small-12 medium-4 payment-feature">
+                        <p>${feature.price} SPP/month</p>
+                        ${!isActive || activeFeature.isCanceled ? `<button class="button-steemit-subscribe" name="${feature.name}">Subscribe</button>` : `<button class="button-steemit-unsubscribe" name="${feature.name}">Unsubscribe</button>`}
+                    </div>`
+                  );
+              });
+
+            // When page is ready, remove loading circle
+            $('.loading-feature-list').hide();
+
+            // Create event listener for subscribe buttons
+            $('.button-steemit-subscribe').click(event => {
+              subscribeFeature(event.target.name);
+            });
+
+            // Create event listener for unsubscribe buttons
+            $('.button-steemit-unsubscribe').click(event => {
+              unsubscribeFeature(event.target.name);
+            });
+          },
+          error: function(msg) {
+              // If error while downloading data, display error message
+              $('.premium-feature-list-content').append(`<h4>Seems that Steemplus-API is having trouble. Please try again later. Sorry for the inconvenience.</h4>
+                <h4>SteemPlus Team</h4>`);
+          }
         });
-
-      // When page is ready, remove loading circle
-      $('.loading-feature-list').hide();
-
-      // Create event listener for subscribe buttons
-      $('.button-steemit-subscribe').click(event => {
-        subscribeFeature(event.target.name);
-      });
-
-      // Create event listener for unsubscribe buttons
-      $('.button-steemit-unsubscribe').click(event => {
-        unsubscribeFeature(event.target.name);
-      });
-    },
-    error: function(msg) {
-        // If error while downloading data, display error message
-        $('.premium-feature-list-content').append(`<h4>Seems that Steemplus-API is having trouble. Please try again later. Sorry for the inconvenience.</h4>
-          <h4>SteemPlus Team</h4>`);
-    }
-  });
+    });
+  
 }
 
 // Function used to create cancel message

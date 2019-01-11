@@ -262,7 +262,12 @@ chrome.storage.local.get(['auto_vote_list','vote_after','vote_after_unit', 'prem
             const autoVotes = items.auto_vote_list == undefined ? [] : items.auto_vote_list;
             const voteAfter = items.vote_after == undefined ? '' : items.vote_after;
             const voteAfterUnit = items.vote_after_unit == undefined ? '' : items.vote_after_unit;
-            if(autoVotes.length > 0 && hasPremiumFeature("Auto Vote")) startAutoVote(autoVotes, voteAfter, voteAfterUnit, me);
+            if(autoVotes.length > 0 && hasPremiumFeature("Auto Vote")) 
+            {
+                setInterval(function() {
+                    startAutoVote(autoVotes, voteAfter, voteAfterUnit, me);
+                }, 300000); // Repeat every 5 minutes
+            }
 
 
 
@@ -1524,7 +1529,6 @@ function date_diff_indays(date1, date2) {
 }
 
 function checkLastPost(last_post_url, account) {
-    console.log('account', account);
     steem.api.getDiscussionsByAuthorBeforeDate('steem-plus', null, new Date().toISOString().split('.')[0], 1, function(err, result) {
         if (!result[0].title.includes('Daily SteemPlus Stats')) {
             if (last_post_url == undefined || last_post_url !== result[0].url) {
