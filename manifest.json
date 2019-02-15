@@ -107,7 +107,8 @@
         "src/js/dtube_post.js",
         "src/js/steem_monsters.js",
         "src/js/premium_features.js",
-        "vendor/steem_keychain.js"
+        "vendor/steem_keychain.js",
+        "vendor/premium_auto_vote.js"
         ],
       "css":["vendor/unslider/unslider.css","vendor/font-awesome.min.css","vendor/unslider/unslider-dots.css","vendor/bootstrap.css","vendor/bootstrap-grid.css","vendor/btn.css","vendor/datatables.min.css","vendor/justifiedGallery.min.css","vendor/toastr.min.css","vendor/bootstrap-slider/bootstrap-slider.min.css","vendor/easy-autocomplete.min.css","vendor/easy-autocomplete.themes.min.css",
         "src/css/delegate.css",
@@ -138,8 +139,7 @@
         "src/css/misc.css",
         "src/css/steemplus_points.css",
         "src/css/dtube_post.css",
-        "src/css/steem_monsters.css",
-        "src/css/premium_features.css"
+        "src/css/steem_monsters.css"
         ],
       "run_at": "document_idle"
     },
@@ -148,6 +148,11 @@
       "js": ["vendor/global_const.js","vendor/jquery.js","vendor/sc2.min.js","vendor/steemjs.js","vendor/smi/sm_utils.js","main.js",
       "vendor/steem_keychain.js","src/js/sm_batch.js"],
       "css":["src/css/sm_batch.css"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["vendor/remarkable.min.js","vendor/jquery.js",  "vendor/smi/utils.js", "vendor/toastr.min.js", "vendor/steemjs.js", "vendor/sc2.min.js", "src/js/loginSteemPlus.js",  "vendor/premium_auto_vote.js"],
       "run_at": "document_idle"
     }
   ]

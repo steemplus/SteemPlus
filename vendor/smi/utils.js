@@ -7,6 +7,21 @@
     const noImageAvailable = "src/img/no-image-available-hi.png";
     const APIBaseUrl="https://api.steemplus.app/";
 
+    function makeToken() {
+        var text = "";
+        var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+        for (var i = 0; i < 10; i++)
+            text += possible.charAt(Math.floor(Math.random() * possible.length));
+        return text;
+    }
+
+    function hasPremiumFeature(feature){
+        return (activePremiumFeaturesSubscriptions&&activePremiumFeaturesSubscriptions.find(sub => {
+            return sub.premiumFeature.name === feature;
+        }) !== undefined);
+    }
+
     var addMinutes = function(date, minutes) {
         let d = new Date();
         let offset = d.getTimezoneOffset();
@@ -789,7 +804,9 @@
         getRC:getRC,
         numberWithCommas:numberWithCommas,
         getTimeBeforeFull: getTimeBeforeFull,
-        createPermlink:createPermlink
+        createPermlink:createPermlink,
+        hasPremiumFeature: hasPremiumFeature,
+        makeToken: makeToken
     };
 
     let currentRequest = null;
@@ -1012,6 +1029,25 @@
       });
     }
 
+    function getActivePremiumFeatureSubscriptions(user) {
+        return new Promise(function(resolve, reject) {
+            $.ajax({
+                type: "GET",
+                beforeSend: function(xhttp) {
+                    xhttp.setRequestHeader("Content-type", "application/json");
+                    xhttp.setRequestHeader("X-Parse-Application-Id", chrome.runtime.id);
+                },
+                url: 'https://api.steemplus.app/features/'+ user,
+                success: function(response) {
+                    resolve(response.activeSubscriptions);
+                },
+                error: function(msg) {
+                    resolve(msg);
+                }
+            });
+        });
+    }
+
     var api={
       getFollowersFollowees:getFollowersFollowees,
       getResteems:getResteems,
@@ -1023,7 +1059,8 @@
       getMentions:getMentions,
       getRewards:getRewards,
       getDelegators:getDelegators,
-      getSPP:getSPP
+      getSPP:getSPP,
+      getActivePremiumFeatureSubscriptions: getActivePremiumFeatureSubscriptions
     }
 
 

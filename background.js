@@ -106,3 +106,26 @@ function websiteSwitch(command) {
         }
     });
 }
+
+function autoVote() {
+    // Send message to autoVote script
+    console.log('Launch auto vote from background');
+
+    setTimeout(function(){
+        chrome.storage.local.get(['auto_vote_configs', 'sessionToken', 'tokenExpire'], function(items){
+            console.log("Send Message to script");   
+            chrome.tabs.query({active: true}, function(tabs){ 
+                chrome.tabs.sendMessage(tabs[0].id, {
+                    to: 'auto_vote',
+                    order: 'start',
+                    items: items
+                }); 
+            });
+        });
+    }, 5000);
+    
+}
+
+autoVote();
+
+

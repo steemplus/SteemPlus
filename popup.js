@@ -16,7 +16,7 @@ steem.api.setOptions({
 
 $('#shortcuts, .switch-text').hide();
 // Get local parameters stored using Chrome Storage API
-chrome.storage.local.get(['auto_vote_list','vote_after','vote_after_unit','premium_features','sm_batch','steem_monsters', 'steemplus_points', 'dtube_post','vote_weight_slider_busy', 'tip_user', 'utopian_post', 'resteem_indicator', 'add_signature', 'author_popup_info', 'rewards_tab', 'wallet_history', 'article_count', 'witnesses_tab', 'classification_user', 'board_reward', 'favorite_section', 'post_floating_bottom_bar', 'md_editor_beautifier', 'blog_histogram', 'user_info_popover', 'gif_picker', 'boost_button', 'followers_table', 'vote_weight_slider', 'mentions_tab', 'search_bar', 'external_link_tab', 'vote_tab', 'steemit_more_info', 'post_votes_list', 'onboarding', 'oneup', 'sessionToken', 'tokenExpire', 'weight', 'resteem', 'blacklist', 'whitelist', 'reputation', 'rep', 'badge', 'del', 'ben', 'feedp', 'drop', 'acc_v', 'transfers'], function(items) {
+chrome.storage.local.get(['auto_vote_configs','premium_features','sm_batch','steem_monsters', 'steemplus_points', 'dtube_post','vote_weight_slider_busy', 'tip_user', 'utopian_post', 'resteem_indicator', 'add_signature', 'author_popup_info', 'rewards_tab', 'wallet_history', 'article_count', 'witnesses_tab', 'classification_user', 'board_reward', 'favorite_section', 'post_floating_bottom_bar', 'md_editor_beautifier', 'blog_histogram', 'user_info_popover', 'gif_picker', 'boost_button', 'followers_table', 'vote_weight_slider', 'mentions_tab', 'search_bar', 'external_link_tab', 'vote_tab', 'steemit_more_info', 'post_votes_list', 'onboarding', 'oneup', 'sessionToken', 'tokenExpire', 'weight', 'resteem', 'blacklist', 'whitelist', 'reputation', 'rep', 'badge', 'del', 'ben', 'feedp', 'drop', 'acc_v', 'transfers'], function(items) {
     var steemConnect = (items.sessionToken === undefined || items.tokenExpire === undefined || items.tokenExpire < Date.now()) ? {
         connect: false
     } : {
@@ -34,11 +34,13 @@ chrome.storage.local.get(['auto_vote_list','vote_after','vote_after_unit','premi
             accessToken: steemConnect.sessionToken,
             scope: ['vote', 'comment', 'comment_options, custom_json']
         });
-        api.me().then((mee) => {
+        api.me().then(async (mee) => {
 
-
+                
             me = mee.name;
             acc = mee.account;
+
+
             if (items.onboarding == 'complete') {
                 $('#connected').css('display', 'block');
                 $('#onboarding').css('display', 'none');
@@ -70,6 +72,61 @@ chrome.storage.local.get(['auto_vote_list','vote_after','vote_after_unit','premi
                 '');
             getVotingPower();
 
+            // If user is connected and subscribed to the Auto Vote premium feature
+            activePremiumFeaturesSubscriptions = await window.SteemPlus.api.getActivePremiumFeatureSubscriptions(me);
+            isPremiumAutoVote = window.SteemPlus.Utils.hasPremiumFeature("Auto Vote", activePremiumFeaturesSubscriptions);
+            
+            if(!isPremiumAutoVote) $('#auto_vote_panel_menu').hide();
+            else {
+
+                const auto_vote_configs = items.auto_vote_configs == undefined ? {} : items.auto_vote_configs;
+                const myConfig = auto_vote_configs[me];
+                // Get all the information saved in his local settings
+                const autoVotes = myConfig.auto_vote_list || [];
+                const voteAfter = myConfig.vote_after || '';
+                const voteAfterUnit = myConfig.vote_after_unit || '';
+                
+                // Setup the view
+                
+                // Setup parameters
+                $('#vote-after').val(voteAfter);
+                $('#vote-after-unit').val(voteAfterUnit);
+                autoVotes.forEach((autoVote) => {
+                    // Setup each auto vote created
+                    let panel = $(`
+                        <div class="auto-vote-inputs">
+                            <input type="text" placeholder="Name" class="input-name" value="${autoVote.username}" />
+                            <input type="number" placeholder="%" class="input-percent" value="${autoVote.percent}"/>
+                            <i class="delete-auto-vote">X</i>
+                        </div>`
+                    );
+                    // Listener on delete button
+                    panel.find('.delete-auto-vote').click(function(){
+                        $(this).parent().remove();
+                        toastr.options = {
+                        "closeButton": true,
+                        "debug": false,
+                        "newestOnTop": false,
+                        "progressBar": false,
+                        "positionClass": "toast-bottom-center",
+                        "preventDuplicates": false,
+                        "onclick": null,
+                        "showDuration": "300",
+                        "hideDuration": "1000",
+                        "timeOut": "5000",
+                        "extendedTimeOut": "1000",
+                        "showEasing": "swing",
+                        "hideEasing": "linear",
+                        "showMethod": "fadeIn",
+                        "hideMethod": "fadeOut"
+                    };
+                    $(this).parent().remove();
+                    toastr.info(`Don't forget to click on save to remove your auto vote.`, 'SteemPlus Auto-Vote');
+                    });
+                    $('#auto-vote-panel').append(panel);
+                });
+            }
+
         });
     }
     // Not connected
@@ -81,6 +138,7 @@ chrome.storage.local.get(['auto_vote_list','vote_after','vote_after_unit','premi
             $('#before_connect').css('display', 'none');
             $('.info_user_connected').css('display', 'none');
             $('#vote-menu').css('display', 'none');
+            $('#auto_vote_panel_menu').css('display', 'none');
             $('#steemhunt').hide();
             $('#shortcuts, .switch-text').show();
             $('.need-online > label > input').prop('disabled', true);
@@ -148,57 +206,7 @@ chrome.storage.local.get(['auto_vote_list','vote_after','vote_after_unit','premi
     md_editor_beautifier = items.md_editor_beautifier == undefined ? 'show' : items.md_editor_beautifier;
     post_floating_bottom_bar = items.post_floating_bottom_bar == undefined ? 'show' : items.post_floating_bottom_bar;
 
-    // If user is connected and subscribed to the Auto Vote premium feature 
-    if(isPremiumAutoVote) {
-        // Get all the information saved in his local settings
-        const autoVotes = items.auto_vote_list == undefined ? [] : items.auto_vote_list;
-        const voteAfter = items.vote_after == undefined ? "" : items.vote_after;
-        const voteAfterUnit = items.vote_after_unit == undefined ? "" : items.vote_after_unit;
-        
-        // Setup the view
-        
-        // Setup parameters
-        $('#vote-after').val(voteAfter);
-        $('#vote-after-unit').val(voteAfterUnit);
-        autoVotes.forEach((autoVote) => {
-            // Setup each auto vote created
-            let panel = $(`
-                <div class="auto-vote-inputs">
-                    <input type="text" placeholder="Name" class="input-name" value="${autoVote.username}" />
-                    <input type="number" placeholder="%" class="input-percent" value="${autoVote.percent}"/>
-                    <i class="delete-auto-vote">X</i>
-                </div>`
-            );
-            // Listener on delete button
-            panel.find('.delete-auto-vote').click(function(){
-                $(this).parent().remove();
-                toastr.options = {
-                "closeButton": true,
-                "debug": false,
-                "newestOnTop": false,
-                "progressBar": false,
-                "positionClass": "toast-bottom-center",
-                "preventDuplicates": false,
-                "onclick": null,
-                "showDuration": "300",
-                "hideDuration": "1000",
-                "timeOut": "5000",
-                "extendedTimeOut": "1000",
-                "showEasing": "swing",
-                "hideEasing": "linear",
-                "showMethod": "fadeIn",
-                "hideMethod": "fadeOut"
-            };
-            $(this).parent().remove();
-            toastr.info(`Don't forget to click on save to remove your auto vote.`, 'SteemPlus Auto-Vote');
-            });
-            $('#auto-vote-panel').append(panel);
-        });
-    }
     
-
-
-
     if (weight !== undefined) {
         document.getElementById('weight').value = weight;
         document.getElementById("myRange").value = weight;
@@ -792,11 +800,13 @@ $('#save-auto-vote').click(async function(){
     }
     else
     {
-        chrome.storage.local.set({
+        let auto_vote_configs = {};
+        auto_vote_configs[me] = {
             auto_vote_list: autoVotes,
             vote_after: voteAfter,
             vote_after_unit: voteAfterUnit
-        });
+        };
+        chrome.storage.local.set({auto_vote_configs: auto_vote_configs});
         toastr.success('Auto Votes saved !', "SteemPlus - Auto Vote");
     }
     
